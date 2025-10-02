@@ -12,6 +12,7 @@ from src.models import Article, ScrapingResult, SourceType
 from .rss_scraper import RSScraper, MultiRSScraper
 from .news_api_scraper import NewsAPIScraper
 from .web_scraper import WebScraper
+from .gnews_scraper import GNewsScraper
 from config.settings import NEWS_SOURCES, SCRAPING_CONFIG, NEWS_API_KEY
 
 
@@ -43,6 +44,15 @@ class ScraperManager:
                 logger.info("Initialized News API scraper")
             except Exception as e:
                 logger.error(f"Failed to initialize News API scraper: {e}")
+        
+        # Initialize GNews scraper (no API key required)
+        if 'gnews' in NEWS_SOURCES.get('news_apis', []):
+            try:
+                gnews_scraper = GNewsScraper()
+                self.scrapers.append(gnews_scraper)
+                logger.info("Initialized GNews scraper")
+            except Exception as e:
+                logger.error(f"Failed to initialize GNews scraper: {e}")
         
         # Initialize web scrapers
         if NEWS_SOURCES.get('websites'):

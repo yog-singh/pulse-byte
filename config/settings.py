@@ -64,6 +64,7 @@ NEWS_SOURCES = {
     ],
     'news_apis': [
         'newsapi',  # Requires API key
+        'gnews',    # Uses Google News (no key required)
     ],
     'websites': [
         'https://www.bbc.com/news',
@@ -71,6 +72,13 @@ NEWS_SOURCES = {
         'https://www.reuters.com',
         'https://www.npr.org/sections/news/',
     ]
+}
+
+# GNews settings
+GNEWS_CONFIG = {
+    'language': config('GNEWS_LANGUAGE', default='en'),
+    'country': config('GNEWS_COUNTRY', default=''),  # e.g., 'US'
+    'max_results': config('GNEWS_MAX_RESULTS', default=50, cast=int)
 }
 
 # Sentiment analysis settings
