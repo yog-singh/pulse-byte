@@ -120,6 +120,7 @@ class AnalyzerManager:
             successful_analyses = sum(1 for article in analyzed_articles if article.sentiment is not None)
             
             logger.info(f"Analysis completed: {successful_analyses}/{len(articles)} successful in {analysis_time:.2f}s")
+            logger.info(f"Analysis results: {analyzed_articles}")
             return analyzed_articles
             
         except Exception as e:

@@ -121,13 +121,14 @@ PulseByte provides a comprehensive CLI for all operations:
 #### Full Pipeline (Scrape + Analyze)
 ```bash
 # Basic usage
-python main.py run --keywords "climate change" "renewable energy"
+python main.py run --keywords "climate change" "renewable energy" --scrapers gnews
 
 # Advanced usage
 python main.py run \
   --keywords "technology" "AI" "machine learning" \
   --max-articles 50 \
   --analyzer transformers \
+  --scrapers gnews
   --export json
 ```
 

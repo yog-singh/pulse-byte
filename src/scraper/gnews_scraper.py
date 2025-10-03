@@ -25,10 +25,7 @@ class GNewsScraper(BaseScraper):
         if GNews is None:
             raise ImportError("gnews package not installed. Install with: pip install gnews")
 
-        self.client = GNews(language=GNEWS_CONFIG['language'])
-        # Country can be empty string to disable
-        if GNEWS_CONFIG.get('country'):
-            self.client.country = GNEWS_CONFIG['country']
+        self.client = GNews(language=GNEWS_CONFIG['language'], country=GNEWS_CONFIG['country'], period=GNEWS_CONFIG['period'])
         self.max_results = GNEWS_CONFIG.get('max_results', 50)
 
     def scrape_articles(self, keywords: Optional[List[str]] = None,
