@@ -218,6 +218,79 @@ class ScraperManager:
             self.scrapers = original_scrapers
         
         return results
+
+    def _match_scrapers_by_selectors(self, selectors: List[str]):
+        """Return scrapers matching provided selector tokens.
+
+        Supported selectors (case-insensitive):
+        - 'rss'      → all RSS scrapers
+        - 'web'      → all Web scrapers
+        - 'newsapi'  → NewsAPI scraper
+        - 'gnews'    → GNews scraper
+        - any other token will be matched against scraper.source_name (case-insensitive contains)
+        """
+        tokens = {s.strip().lower() for s in selectors if s and s.strip()}
+        if not tokens:
+            return []
+
+        matched = []
+        for scraper in self.scrapers:
+            name_l = scraper.source_name.lower()
+            type_l = scraper.source_type.value.lower()
+
+            # Type-based
+            if 'rss' in tokens and scraper.source_type == SourceType.RSS:
+                matched.append(scraper)
+                continue
+            if 'web' in tokens and scraper.source_type == SourceType.WEBSITE:
+                matched.append(scraper)
+                continue
+
+            # Specific API scrapers
+            if 'newsapi' in tokens and name_l == 'newsapi':
+                matched.append(scraper)
+                continue
+            if 'gnews' in tokens and name_l == 'gnews':
+                matched.append(scraper)
+                continue
+
+            # Name contains token
+            if any(tok in name_l for tok in tokens):
+                matched.append(scraper)
+
+        # Deduplicate while preserving order
+        seen = set()
+        unique = []
+        for s in matched:
+            if id(s) not in seen:
+                seen.add(id(s))
+                unique.append(s)
+        return unique
+
+    def scrape_selected_sources(self,
+                                selectors: List[str],
+                                keywords: Optional[List[str]] = None,
+                                max_articles_per_source: Optional[int] = None,
+                                use_parallel: bool = True,
+                                max_workers: int = 5) -> List[ScrapingResult]:
+        """Scrape only scrapers matching selector tokens.
+
+        See _match_scrapers_by_selectors for supported selectors.
+        """
+        selected = self._match_scrapers_by_selectors(selectors)
+        if not selected:
+            logger.warning(f"No scrapers matched selectors: {selectors}")
+            return []
+
+        original_scrapers = self.scrapers
+        self.scrapers = selected
+        try:
+            return self.scrape_all_sources(keywords=keywords,
+                                           max_articles_per_source=max_articles_per_source,
+                                           use_parallel=use_parallel,
+                                           max_workers=max_workers)
+        finally:
+            self.scrapers = original_scrapers
     
     def get_scraper_stats(self) -> Dict[str, Any]:
         """Get statistics about configured scrapers."""

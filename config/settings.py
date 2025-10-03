@@ -77,8 +77,9 @@ NEWS_SOURCES = {
 # GNews settings
 GNEWS_CONFIG = {
     'language': config('GNEWS_LANGUAGE', default='en'),
-    'country': config('GNEWS_COUNTRY', default=''),  # e.g., 'US'
-    'max_results': config('GNEWS_MAX_RESULTS', default=50, cast=int)
+    'country': config('GNEWS_COUNTRY', default='IN'),  # e.g., 'US'
+    'max_results': config('GNEWS_MAX_RESULTS', default=50, cast=int),
+    'period': config('GNEWS_PERIOD', default='7d', cast=str)
 }
 
 # Sentiment analysis settings

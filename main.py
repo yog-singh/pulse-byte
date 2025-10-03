@@ -67,12 +67,22 @@ class PulseByte:
         logger.info(f"Analyzer: {analyzer}")
         
         # Step 1: Scrape articles
-        logger.info("Step 1: Scraping articles from all sources...")
-        scraping_results = self.scraper_manager.scrape_all_sources(
-            keywords=keywords,
-            max_articles_per_source=max_articles,
-            use_parallel=True
-        )
+        logger.info("Step 1: Scraping articles from sources...")
+        # If CLI provided selected scrapers, the caller will pass via kwargs attribute
+        selected_scrapers = getattr(self, '_selected_scrapers', None)
+        if selected_scrapers:
+            scraping_results = self.scraper_manager.scrape_selected_sources(
+                selectors=selected_scrapers,
+                keywords=keywords,
+                max_articles_per_source=max_articles,
+                use_parallel=True
+            )
+        else:
+            scraping_results = self.scraper_manager.scrape_all_sources(
+                keywords=keywords,
+                max_articles_per_source=max_articles,
+                use_parallel=True
+            )
         
         # Collect all articles
         all_articles = []
@@ -141,11 +151,20 @@ class PulseByte:
         
         logger.info(f"Scraping articles with keywords: {keywords}")
         
-        scraping_results = self.scraper_manager.scrape_all_sources(
-            keywords=keywords,
-            max_articles_per_source=max_articles,
-            use_parallel=True
-        )
+        selected_scrapers = getattr(self, '_selected_scrapers', None)
+        if selected_scrapers:
+            scraping_results = self.scraper_manager.scrape_selected_sources(
+                selectors=selected_scrapers,
+                keywords=keywords,
+                max_articles_per_source=max_articles,
+                use_parallel=True
+            )
+        else:
+            scraping_results = self.scraper_manager.scrape_all_sources(
+                keywords=keywords,
+                max_articles_per_source=max_articles,
+                use_parallel=True
+            )
         
         # Summary
         total_articles = sum(len(r.articles) for r in scraping_results)
@@ -285,6 +304,7 @@ Examples:
     run_parser.add_argument('--analyzer', default='vader', choices=['vader', 'textblob', 'transformers'], 
                            help='Sentiment analyzer to use')
     run_parser.add_argument('--export', choices=['json', 'csv', 'excel'], help='Export format')
+    run_parser.add_argument('--scrapers', nargs='+', help='Scrapers to run (e.g., rss web newsapi gnews or names)')
     run_parser.add_argument('--no-db', action='store_true', help='Skip saving to database')
     
     # Scrape only
@@ -292,6 +312,7 @@ Examples:
     scrape_parser.add_argument('--keywords', nargs='+', help='Keywords to search for')
     scrape_parser.add_argument('--max-articles', type=int, default=50, help='Max articles per source')
     scrape_parser.add_argument('--export', action='store_true', help='Export scraping results')
+    scrape_parser.add_argument('--scrapers', nargs='+', help='Scrapers to run (e.g., rss web newsapi gnews or names)')
     
     # Analyze existing
     analyze_parser = subparsers.add_parser('analyze', help='Analyze existing articles')
@@ -323,6 +344,10 @@ def main():
         app = PulseByte()
         
         if args.command == 'run':
+            # Pass selected scrapers into app instance
+            if getattr(args, 'scrapers', None):
+                app._selected_scrapers = args.scrapers
+                logger.info(f"Selected scrapers: {args.scrapers}")
             app.run_full_pipeline(
                 keywords=args.keywords,
                 max_articles=args.max_articles,
@@ -332,6 +357,9 @@ def main():
             )
         
         elif args.command == 'scrape':
+            if getattr(args, 'scrapers', None):
+                app._selected_scrapers = args.scrapers
+                logger.info(f"Selected scrapers: {args.scrapers}")
             app.scrape_only(
                 keywords=args.keywords,
                 max_articles=args.max_articles,
